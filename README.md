@@ -2,7 +2,7 @@
 
 An offline-first Bhagavad Gita reader: all 700 verses in Devanagari + IAST, public-domain English translations, six reading themes, highlighting, bookmarks and search. Built with Expo Router and React Native — one codebase for iOS, Android and web.
 
-This is **App 1** of two. The second app (short-form reels of verses and dialogues) is a separate product; the research and market notes for it live in [`../BHAGAVAD_GITA_APP_RESEARCH.md`](../BHAGAVAD_GITA_APP_RESEARCH.md).
+This is **App 1** of two. The second app (short-form reels of verses and dialogues) is a separate product with its own content pipeline; its research notes are deliberately kept out of this repository.
 
 ## Run it
 

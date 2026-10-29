@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ProgressBar } from '@/components/progress-bar';
 import { ScreenShell, useScreenContentPadding } from '@/components/screen-shell';
 import { VerseCard } from '@/components/verse-card';
+import { AdBanner } from '@/components/ad-banner';
 import { CHAPTERS, TOTAL_VERSES, VERSES, getChapter, getVerseOfTheDay } from '@/data';
 import { FontFamily, Radius, Space } from '@/constants/theme';
 import { useReadingTheme } from '@/hooks/use-reading-theme';
@@ -190,6 +191,8 @@ export default function HomeScreen() {
             onPress={() => router.push('/highlights?tab=bookmarks')}
           />
         </View>
+
+        <AdBanner placement="home" />
 
         {VERSES.length < TOTAL_VERSES ? (
           <View

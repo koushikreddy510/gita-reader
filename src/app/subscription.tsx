@@ -88,8 +88,8 @@ export default function SubscriptionScreen() {
     }
 
     Alert.alert(
-      'Payments not connected',
-      'This build has no store connection yet, so nothing will be charged. Wire RevenueCat to the App Store / Play Store products before release.',
+      'Premium is coming soon',
+      "Subscriptions aren't available yet, and nothing will be charged. Thank you for your interest — we'll let you know when Premium launches.",
       buttons
     );
   };
@@ -97,7 +97,7 @@ export default function SubscriptionScreen() {
   const onRestore = () =>
     Alert.alert(
       'Restore purchases',
-      'Restore requires a store connection. Once RevenueCat is wired, this calls Purchases.restorePurchases().'
+      'There are no purchases to restore yet. Subscriptions are coming soon.'
     );
 
   return (

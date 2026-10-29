@@ -18,6 +18,7 @@ import { getTheme } from '@/constants/reading-themes';
 import { getAppLanguage, getTextSize, getTranslation } from '@/constants/settings-options';
 import { FontFamily, Radius, Space } from '@/constants/theme';
 import { useReadingTheme } from '@/hooks/use-reading-theme';
+import { showPrivacyOptions, useAdsReady } from '@/lib/ads';
 import { tapFeedback } from '@/lib/haptics';
 import { useLibrary } from '@/store/library';
 import { useSettings } from '@/store/settings';
@@ -30,6 +31,7 @@ export default function SettingsScreen() {
   const contentPadding = useScreenContentPadding(true);
 
   const settings = useSettings();
+  const privacyOptionsRequired = useAdsReady((state) => state.privacyOptionsRequired);
   const resetLibrary = useLibrary((state) => state.reset);
   const readCount = useLibrary((state) => Object.keys(state.read).length);
   const highlightCount = useLibrary((state) => Object.keys(state.highlights).length);
@@ -145,6 +147,23 @@ export default function SettingsScreen() {
             subtitle={textSize.subtitle}
             value={textSize.name.split(' ')[0]}
             onPress={() => setSheet('textSize')}
+          />
+          {privacyOptionsRequired ? (
+            <SettingsRow
+              icon="shield-checkmark-outline"
+              title="Privacy Settings"
+              subtitle="Review or change your ad consent"
+              onPress={() => {
+                showPrivacyOptions().catch(() => {});
+              }}
+            />
+          ) : null}
+          <SettingsRow
+            icon="analytics-outline"
+            title="Usage & Crash Data"
+            subtitle="Anonymous, helps us fix problems"
+            value={settings.analyticsEnabled ? 'On' : 'Off'}
+            onPress={() => settings.setAnalyticsEnabled(!settings.analyticsEnabled)}
           />
           <SettingsRow
             icon="star-outline"

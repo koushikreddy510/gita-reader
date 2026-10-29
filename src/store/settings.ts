@@ -25,6 +25,8 @@ type SettingsState = {
   scriptMode: ScriptMode;
   appLanguage: string;
   isPremium: boolean;
+  /** User's choice to share anonymous usage and crash data. */
+  analyticsEnabled: boolean;
   /** False until AsyncStorage has been read; the UI holds the splash until then. */
   hydrated: boolean;
 
@@ -34,6 +36,7 @@ type SettingsState = {
   setScriptMode: (mode: ScriptMode) => void;
   setAppLanguage: (id: string) => void;
   setPremium: (value: boolean) => void;
+  setAnalyticsEnabled: (value: boolean) => void;
   setHydrated: (value: boolean) => void;
 };
 
@@ -46,6 +49,7 @@ export const useSettings = create<SettingsState>()(
       scriptMode: DEFAULT_SCRIPT_MODE,
       appLanguage: DEFAULT_APP_LANGUAGE,
       isPremium: false,
+      analyticsEnabled: true,
       hydrated: false,
 
       setTheme: (themeId) => set({ themeId }),
@@ -54,6 +58,7 @@ export const useSettings = create<SettingsState>()(
       setScriptMode: (scriptMode) => set({ scriptMode }),
       setAppLanguage: (appLanguage) => set({ appLanguage }),
       setPremium: (isPremium) => set({ isPremium }),
+      setAnalyticsEnabled: (analyticsEnabled) => set({ analyticsEnabled }),
       setHydrated: (hydrated) => set({ hydrated }),
     }),
     {

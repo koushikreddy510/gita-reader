@@ -1,0 +1,131 @@
+/**
+ * The ads module decides when the Mobile Ads SDK may start. Policy requires
+ * consent to be resolved first, so the order of calls is what these tests pin.
+ */
+
+const TEST_UNIT = 'ca-app-pub-3940256099942544/9214589741';
+const REAL_UNIT = 'ca-app-pub-1830143198859206/6313077077';
+
+const initialize = jest.fn(() => Promise.resolve([]));
+const gatherConsent = jest.fn();
+const getConsentInfo = jest.fn();
+
+jest.mock('react-native-google-mobile-ads', () => ({
+  __esModule: true,
+  default: () => ({ initialize }),
+  AdsConsent: {
+    gatherConsent: (...args: unknown[]) => gatherConsent(...args),
+    getConsentInfo: (...args: unknown[]) => getConsentInfo(...args),
+  },
+  TestIds: { ADAPTIVE_BANNER: 'ca-app-pub-3940256099942544/9214589741' },
+}));
+
+type AdsModule = typeof import('@/lib/ads');
+
+function loadAds(dev = true): AdsModule {
+  let mod!: AdsModule;
+  const g = globalThis as unknown as { __DEV__: boolean };
+  const previous = g.__DEV__;
+  g.__DEV__ = dev;
+  jest.isolateModules(() => {
+    mod = require('@/lib/ads');
+  });
+  g.__DEV__ = previous;
+  return mod;
+}
+
+/** startAds is fire-and-forget; let its promise chain settle. */
+const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  delete process.env.EXPO_PUBLIC_ADMOB_HOME_BANNER_ID;
+  gatherConsent.mockResolvedValue({});
+  getConsentInfo.mockResolvedValue({ canRequestAds: true });
+});
+
+describe('unit ids', () => {
+  it('uses Google’s test banner in development builds', () => {
+    expect(loadAds(true).adsConfig.unitIds.home).toBe(TEST_UNIT);
+  });
+
+  it('uses the real Home banner in release builds', () => {
+    expect(loadAds(false).adsConfig.unitIds.home).toBe(REAL_UNIT);
+  });
+
+  it('lets the environment override the release unit', () => {
+    process.env.EXPO_PUBLIC_ADMOB_HOME_BANNER_ID = 'ca-app-pub-1/2';
+
+    expect(loadAds(false).adsConfig.unitIds.home).toBe('ca-app-pub-1/2');
+  });
+
+  it('never reuses a test unit in release builds', () => {
+    expect(loadAds(false).adsConfig.unitIds.home).not.toBe(TEST_UNIT);
+  });
+});
+
+describe('placements', () => {
+  it('allows ads on Home only, never in the reader', () => {
+    expect(loadAds().adsConfig.placements).toEqual({ home: true });
+  });
+});
+
+describe('startAds', () => {
+  it('gathers consent before initialising the SDK', async () => {
+    const order: string[] = [];
+    gatherConsent.mockImplementation(async () => void order.push('consent'));
+    initialize.mockImplementationOnce(async () => {
+      order.push('init');
+      return [];
+    });
+    const ads = loadAds();
+
+    ads.startAds();
+    await flush();
+
+    expect(order).toEqual(['consent', 'init']);
+    expect(ads.useAdsReady.getState().ready).toBe(true);
+  });
+
+  it('does not initialise when consent forbids requesting ads', async () => {
+    getConsentInfo.mockResolvedValue({ canRequestAds: false });
+    const ads = loadAds();
+
+    ads.startAds();
+    await flush();
+
+    expect(initialize).not.toHaveBeenCalled();
+    expect(ads.useAdsReady.getState().ready).toBe(false);
+  });
+
+  it('still starts from stored consent when gathering fails', async () => {
+    gatherConsent.mockRejectedValue(new Error('offline'));
+    const ads = loadAds();
+
+    ads.startAds();
+    await flush();
+
+    expect(initialize).toHaveBeenCalledTimes(1);
+    expect(ads.useAdsReady.getState().ready).toBe(true);
+  });
+
+  it('initialises only once however often it is called', async () => {
+    const ads = loadAds();
+
+    ads.startAds();
+    ads.startAds();
+    await flush();
+
+    expect(initialize).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays off, without throwing, when initialisation fails', async () => {
+    initialize.mockRejectedValueOnce(new Error('sdk'));
+    const ads = loadAds();
+
+    expect(() => ads.startAds()).not.toThrow();
+    await flush();
+
+    expect(ads.useAdsReady.getState().ready).toBe(false);
+  });
+});

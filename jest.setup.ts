@@ -39,3 +39,16 @@ beforeAll(() => {
 afterAll(() => {
   console.error = originalError;
 });
+
+// Firebase is native-only; tests get inert doubles.
+jest.mock('@react-native-firebase/analytics', () => ({
+  getAnalytics: jest.fn(() => ({})),
+  logEvent: jest.fn(() => Promise.resolve()),
+  logScreenView: jest.fn(() => Promise.resolve()),
+  setAnalyticsCollectionEnabled: jest.fn(() => Promise.resolve()),
+}));
+jest.mock('@react-native-firebase/crashlytics', () => ({
+  getCrashlytics: jest.fn(() => ({})),
+  recordError: jest.fn(),
+  setCrashlyticsCollectionEnabled: jest.fn(() => Promise.resolve()),
+}));

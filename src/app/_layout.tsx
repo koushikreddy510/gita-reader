@@ -15,13 +15,20 @@ import {
   NotoSerifDevanagari_600SemiBold,
 } from '@expo-google-fonts/noto-serif-devanagari';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useReadingTheme } from '@/hooks/use-reading-theme';
+import { startAds, useAdsReady } from '@/lib/ads';
+import {
+  isTelemetryAllowed,
+  screenNameFromSegments,
+  setTelemetryEnabled,
+  trackScreen,
+} from '@/lib/analytics';
 import { useLibrary } from '@/store/library';
 import { useSettings } from '@/store/settings';
 
@@ -52,6 +59,32 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
+
+  useEffect(() => {
+    startAds();
+  }, []);
+
+  const analyticsEnabled = useSettings((state) => state.analyticsEnabled);
+  const consentResolved = useAdsReady((state) => state.consentResolved);
+  const consentRequired = useAdsReady((state) => state.privacyOptionsRequired);
+  const segments = useSegments();
+  const screenName = screenNameFromSegments(segments);
+
+  // Telemetry stays off until consent for this launch is known.
+  useEffect(() => {
+    if (!settingsHydrated || !consentResolved) return;
+    let cancelled = false;
+    isTelemetryAllowed(analyticsEnabled, consentRequired).then((allowed) => {
+      if (!cancelled) setTelemetryEnabled(allowed);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [settingsHydrated, consentResolved, consentRequired, analyticsEnabled]);
+
+  useEffect(() => {
+    if (ready) trackScreen(screenName);
+  }, [ready, screenName]);
 
   if (!ready) return null;
 

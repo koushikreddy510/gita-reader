@@ -57,6 +57,7 @@ export function VerseCard({ verse, showMeta = true }: Props) {
 
   return (
     <Pressable
+      testID={`verse-${verse.ref}`}
       onLongPress={() => {
         tapFeedback();
         setPaletteOpen((open) => !open);
@@ -76,6 +77,7 @@ export function VerseCard({ verse, showMeta = true }: Props) {
 
         <View style={styles.topActions}>
           <Pressable
+            testID={`bookmark-${verse.ref}`}
             accessibilityRole="button"
             accessibilityLabel={isBookmarked ? 'Remove bookmark' : 'Bookmark verse'}
             hitSlop={10}
@@ -163,6 +165,7 @@ export function VerseCard({ verse, showMeta = true }: Props) {
               return (
                 <Pressable
                   key={color}
+                  testID={`swatch-${color}`}
                   accessibilityRole="button"
                   accessibilityLabel={`${HIGHLIGHT_LABELS[color]} highlight`}
                   accessibilityState={{ selected: active }}
@@ -180,6 +183,7 @@ export function VerseCard({ verse, showMeta = true }: Props) {
             })}
             {highlight ? (
               <Pressable
+                testID={`clear-highlight-${verse.ref}`}
                 accessibilityRole="button"
                 accessibilityLabel="Remove highlight"
                 hitSlop={6}
